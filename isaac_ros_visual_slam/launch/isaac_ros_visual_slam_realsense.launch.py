@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: NVIDIA CORPORATION & AFFILIATES
-# Copyright (c) 2021-2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# Copyright (c) 2021-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,12 +28,17 @@ def generate_launch_description():
         package='realsense2_camera',
         executable='realsense2_camera_node',
         parameters=[{
-                'infra_height': 360,
-                'infra_width': 640,
+                'enable_infra1': True,
+                'enable_infra2': True,
                 'enable_color': False,
                 'enable_depth': False,
-                'stereo_module.emitter_enabled': False,
-                'infra_fps': 90.0
+                'depth_module.emitter_enabled': 0,
+                'depth_module.profile': '640x360x90',
+                'enable_gyro': True,
+                'enable_accel': True,
+                'gyro_fps': 200,
+                'accel_fps': 200,
+                'unite_imu_method': 2
         }]
     )
 
@@ -42,24 +47,30 @@ def generate_launch_description():
         package='isaac_ros_visual_slam',
         plugin='isaac_ros::visual_slam::VisualSlamNode',
         parameters=[{
-                    'enable_rectified_pose': True,
                     'denoise_input_images': False,
                     'rectified_images': True,
                     'enable_debug_mode': False,
-                    'debug_dump_path': '/tmp/elbrus',
+                    'debug_dump_path': '/tmp/cuvslam',
                     'enable_slam_visualization': True,
                     'enable_landmarks_view': True,
                     'enable_observations_view': True,
                     'map_frame': 'map',
                     'odom_frame': 'odom',
                     'base_frame': 'camera_link',
-                    'input_left_camera_frame': 'camera_infra1_frame',
-                    'input_right_camera_frame': 'camera_infra2_frame'
+                    'input_imu_frame': 'camera_gyro_optical_frame',
+                    'enable_imu_fusion': True,
+                    'gyro_noise_density': 0.000244,
+                    'gyro_random_walk': 0.000019393,
+                    'accel_noise_density': 0.001862,
+                    'accel_random_walk': 0.003,
+                    'calibration_frequency': 200.0,
+                    'img_jitter_threshold_ms': 22.00
                     }],
         remappings=[('stereo_camera/left/image', 'camera/infra1/image_rect_raw'),
                     ('stereo_camera/left/camera_info', 'camera/infra1/camera_info'),
                     ('stereo_camera/right/image', 'camera/infra2/image_rect_raw'),
-                    ('stereo_camera/right/camera_info', 'camera/infra2/camera_info')]
+                    ('stereo_camera/right/camera_info', 'camera/infra2/camera_info'),
+                    ('visual_slam/imu', 'camera/imu')]
     )
 
     visual_slam_launch_container = ComposableNodeContainer(
